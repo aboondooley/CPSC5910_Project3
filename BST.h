@@ -6,31 +6,47 @@
 #define P3_BST_BST_H
 #include <algorithm>
 
+
+template<typename KeyType>
 class BST {
+private:
+    struct Node; // forward declaration
 
 public:
     /**
      * No argument constructor
      */
-    BST();
+    BST(){
+        root = nullptr;
+    }
 
     /**
      * Destructor
      */
-    ~BST();
+    ~BST(){
+        clear(root); // delete the root and everything below
+    }
 
     /**
      * Copy constructor
      * @param other the BST object to copy
      */
-    BST(const BST &other);
+    BST(const BST &other){
+        root = copy(other.root);
+    }
 
     /**
      * Assignment operator overload
      * @param rhs BST object to copy
      * @return me!
      */
-    BST &operator=(BST &rhs);
+    BST<KeyType> &operator=(BST<KeyType> &rhs){
+        if (&rhs != this){
+            clear(root);
+            root = copy(rhs.root);
+        }
+        return *this;
+    }
 
     /**
      * Checks if the key (int) exists in the tree/set
@@ -38,7 +54,7 @@ public:
      * @return true if the value is in the tree, false if not
      * @post the key is still in the tree
      */
-    bool has(int key) const;
+    bool has(KeyType key) const;
 
     /**
      * Adds the key value in the appropriate spot in the tree, if it is not
@@ -46,7 +62,7 @@ public:
      * @param newKey the key value to add
      * @post the key is only in the tree once
      */
-    void add(int newKey);
+    void add(KeyType newKey);
 
     /**
      * Removes the specified key value and reorganizes the tree, if
@@ -54,19 +70,26 @@ public:
      * @param key the key value to add
      * @post the tree is still a BST
      */
-    void remove(int key);
+    void remove(KeyType key);
 
     /**
      * Checks whether the tree is empty
      * @return true if empty, false if not
      */
-    bool empty() const;
+    bool empty() const {
+        if (root == nullptr) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Checks the size of the tree
      * @return the number of nodes in the tree
      */
-    int size() const;
+    int size() const{
+        return size(root);
+    }
 
     /**
      * Checks how many leaves are in the tree
@@ -74,8 +97,20 @@ public:
      */
     int getLeafCount() const;
 
-    int getHeight() const;
+    /**
+     * Returns the height of the tree. An empty tree has a height or zero
+     * A tree with only a root has a height of one
+     * A tree with a root and one child has a height of two, and so on
+     * @return height
+     */
+    int getHeight() const{
+        return getHeight(root);
+    }
 
+    /**
+     *
+     * @return
+     */
     std::string getInOrderTraversal() const;
 
     std::string getPreOrderTraversal() const;
@@ -85,14 +120,14 @@ public:
 
 private:
     /**
-     * Node struct to build our tree with
+     * Node struct to build our tree
      */
     struct Node{
-        int key;
+        KeyType key;
         Node *left, *right;
 
         // convenience constructor
-        Node(int k, Node *lch, Node *rch){
+        Node(KeyType k, Node *lch, Node *rch){
             key = k;
             left = lch; // always think of left before right
             right = rch;
@@ -103,14 +138,18 @@ private:
          * current node
          * @return the maximum value
          */
-        int findMax() const;
+        KeyType findMax() const;
 
-    public:
         /**
          * Checks whether the node is a leaf
          * @return true if it is a leaf, false if not
          */
-        bool isLeaf() const;
+        bool isLeaf() const{
+            if (left == nullptr && right == nullptr){
+                return true;
+            }
+            return false;
+        }
     };
     /**
      * The root of the BST object
@@ -123,7 +162,7 @@ private:
      * @param key the value to search for
      * @return true if the value exists, false if not
      */
-    static bool has(Node *me, int key);
+    static bool has(Node *me, KeyType key);
 
     /**
      * Recursive helper for the add() method
@@ -131,7 +170,7 @@ private:
      * @param key the value to add
      * @return me or the new right or left child node
      */
-    static Node *add(Node *me, int key);
+    static Node *add(Node *me, KeyType key);
 
     /**
      * Recursive helper for the remove() method
@@ -139,7 +178,7 @@ private:
      * @param key the value to remove
      * @return me or the new left or right child node
      */
-    static Node *remove(Node *me, int key);
+    static Node *remove(Node *me, KeyType key);
 
     /**
      * Recursive helper for the copy() method
@@ -168,7 +207,11 @@ private:
      */
     static int getLeafCount(Node *me);
 
-    static int getHeight(Node *me);
+    static int getHeight(Node *me){
+        if (me == nullptr)
+            return 0;
+        return 1 + std::max(getHeight(me->right), getHeight(me->left));
+    }
 
     static std::string getInOrderTraversal(Node *me);
 
@@ -177,32 +220,32 @@ private:
     static std::string getPostOrderTraversal(Node *me);
 };
 
-int BST::getHeight() const {
+int BST::getHeight() const { //*
     return getHeight(root);
 }
 
-int BST::getHeight(BST::Node *me) {
+int BST::getHeight(BST::Node *me) { //*
     if (me == nullptr)
         return 0;
     return 1 + std::max(getHeight(me->right), getHeight(me->left));
 }
 
-BST::BST() {
+BST::BST() { //*
     root = nullptr;
 }
 
 
-BST::~BST() {
+BST::~BST() { //*
     clear(root); // delete the root and everything below
 }
 
 
-BST::BST(const BST &other) {
+BST::BST(const BST &other) { //*
     root = copy(other.root);
 }
 
 
-BST &BST::operator=(BST &rhs) {
+BST &BST::operator=(BST &rhs) { //*
     if (&rhs != this){
         clear(root);
         root = copy(rhs.root);
@@ -210,9 +253,8 @@ BST &BST::operator=(BST &rhs) {
     return *this;
 }
 
-// Lab 4 methods below!!
 
-bool BST::empty() const {
+bool BST::empty() const { //*
     if (root == nullptr) {
         return true;
     }
@@ -220,7 +262,7 @@ bool BST::empty() const {
 }
 
 
-bool BST::Node::isLeaf() const { // also method of BST::Node
+bool BST::Node::isLeaf() const { //*
     if (left == nullptr && right == nullptr){
         return true;
     }
@@ -228,7 +270,7 @@ bool BST::Node::isLeaf() const { // also method of BST::Node
 }
 
 
-int BST::size() const {
+int BST::size() const { //*
     return size(root);
 }
 
@@ -253,7 +295,6 @@ int BST::getLeafCount(BST::Node *me) {
     return getLeafCount(me->left) + getLeafCount(me->right);
 }
 
-// Lab 4 methods above!!
 
 bool BST::has(int key) const {
     return has(root, key);
@@ -356,7 +397,7 @@ std::string BST::getInOrderTraversal(BST::Node *me) {
     if (me == nullptr) {
         return "";
     }
-    return getInOrderTraversal(me->left) + " " + std::to_string(me->key)
+    return getInOrderTraversal(me->left) + std::to_string(me->key)
     + " " + getInOrderTraversal(me->right);
 }
 
@@ -369,7 +410,7 @@ std::string BST::getPreOrderTraversal(BST::Node *me) {
         return "";
     }
     return std::to_string(me->key) + " " + getPreOrderTraversal(me->left) +
-    " " + getPreOrderTraversal(me->right);
+    getPreOrderTraversal(me->right);
 }
 
 std::string BST::getPostOrderTraversal() const {
@@ -380,8 +421,8 @@ std::string BST::getPostOrderTraversal(BST::Node *me) {
     if (me == nullptr) {
         return "";
     }
-    return getPostOrderTraversal(me->left) + " " +
-    getPostOrderTraversal(me->right) + " " + std::to_string(me->key);
+    return getPostOrderTraversal(me->left) +
+    getPostOrderTraversal(me->right) + std::to_string(me->key) + " ";
 }
 
 
