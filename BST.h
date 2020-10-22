@@ -5,8 +5,21 @@
 #ifndef P3_BST_BST_H
 #define P3_BST_BST_H
 #include <algorithm>
+#include <sstream>
 
-
+/**
+ * BST Template Class is a binary search tree which holds elements of any
+ * primitive type. The elements are ordered in ascending order going left to
+ * right, for example the largest value in the tree will be found on the
+ * bottom level on the left-most side.
+ * A you can get the height, number of nodes (size), number of leaves,
+ * whether the tree is empty, and check the three types of traversals of the
+ * tree (pre-order, in-order, and post-order.)
+ * You can also add, remove, and see if a particular element is in the tree.
+ * The tree can have up to one instance of an element - no duplicates.
+ * @tparam KeyType the type of the elements in the BST object - can be any
+ * primitive type
+ */
 template<typename KeyType>
 class BST {
 private:
@@ -116,21 +129,29 @@ public:
     }
 
     /**
-     *
-     * @return
+     * Gets the node values in order from the BST
+     * @return a string containing the nodes' payloads in order
      */
     std::string getInOrderTraversal() const {
         return getInOrderTraversal(root);
     }
 
+    /**
+     * Gets the payload values in pre order from the BST
+     * @return a string containing the nodes' payloads in pre order
+     */
     std::string getPreOrderTraversal() const {
         return getPreOrderTraversal(root);
     }
 
+
+    /**
+     * Gets the payload values in post order from the BST
+     * @return a string containing the nodes' payloads in post order
+     */
     std::string getPostOrderTraversal() const {
         return getPostOrderTraversal(root);
     }
-
 
 private:
     /**
@@ -216,14 +237,14 @@ private:
      * @param key the value to remove
      * @return me or the new left or right child node
      */
-    static Node *remove(Node *me, KeyType key) {
+    static Node *remove(Node *me, KeyType rKey) {
         if (me == nullptr)
             return nullptr; // nothing to remove, key not found
-        if (key < me->key) {
-            me->left = remove(me->left, key);
+        if (rKey < me->key) {
+            me->left = remove(me->left, rKey);
             return me;
-        } else if (key > me->key) {
-            me->right = remove(me->right, key);
+        } else if (rKey > me->key) {
+            me->right = remove(me->right, rKey);
             return me;
         } else {
             // FOUND IT!
@@ -239,6 +260,7 @@ private:
                 // replace me with max element in my left subtree
                 me->key = me->left->findMax();
                 me->left = remove(me->left, me->key);
+                return me;
             }
         }
     }
@@ -291,241 +313,65 @@ private:
         return getLeafCount(me->left) + getLeafCount(me->right);
     }
 
+    /**
+     * Recursive helper for getHeight()
+     * @param me the root of the subtree to get the height of
+     * @return height of the subtree
+     */
     static int getHeight(Node *me) {
         if (me == nullptr)
             return 0;
         return 1 + std::max(getHeight(me->right), getHeight(me->left));
     }
 
+    /**
+    * Recursive helper for te getInOrderTraversal method
+    * @param me the subtree to get the in-order traversal of
+    * @return returns the nodes in-order from the subtree
+    */
     static std::string getInOrderTraversal(Node *me) {
-        if (me == nullptr) {
+        if (me == nullptr) { // basecase
             return "";
         }
-        return getInOrderTraversal(me->left) + std::to_string(me->key)
-               + " " + getInOrderTraversal(me->right);
+        std::stringstream ss; // create a stringstream object to collect the
+        // tree elements that are returned
+        ss << getInOrderTraversal(me->left) << me->key << " " <<
+           getInOrderTraversal(me->right);
+        return ss.str();
     }
 
+    /**
+     * Recursive helper for the getPreOrderTraversal method
+     * @param me the subtree to get the pre-order traversal of
+     * @return the nodes in pre-order from the subtree
+     */
     static std::string getPreOrderTraversal(Node *me) {
         if (me == nullptr) {
             return "";
         }
-        return std::to_string(me->key) + " " + getPreOrderTraversal(me->left) +
-               getPreOrderTraversal(me->right);
+        std::stringstream ss;
+        ss << me->key << " " << getPreOrderTraversal(me->left) <<
+           getPreOrderTraversal(me->right);
+        return ss.str();
     }
 
+    /**
+     * Recursive helper for the getPostOrderTraversal method
+     * @param me the subtree to get the post-order traversal of
+     * @return the nodes in post-order from the subtree
+     */
     static std::string getPostOrderTraversal(Node *me) {
         if (me == nullptr) {
             return "";
         }
-        return getPostOrderTraversal(me->left) +
-               getPostOrderTraversal(me->right) + std::to_string(me->key) + " ";
+        std::stringstream ss;
+        ss << getPostOrderTraversal(me->left) <<
+           getPostOrderTraversal(me->right) << me->key << " ";
+        return ss.str();
     }
+
 };
 
-int BST::getHeight() const { //*
-    return getHeight(root);
-}
-
-int BST::getHeight(BST::Node *me) { //*
-    if (me == nullptr)
-        return 0;
-    return 1 + std::max(getHeight(me->right), getHeight(me->left));
-}
-
-BST::BST() { //*
-    root = nullptr;
-}
-
-
-BST::~BST() { //*
-    clear(root); // delete the root and everything below
-}
-
-
-BST::BST(const BST &other) { //*
-    root = copy(other.root);
-}
-
-
-BST &BST::operator=(BST &rhs) { //*
-    if (&rhs != this){
-        clear(root);
-        root = copy(rhs.root);
-    }
-    return *this;
-}
-
-
-bool BST::empty() const { //*
-    if (root == nullptr) {
-        return true;
-    }
-    return false;
-}
-
-
-bool BST::Node::isLeaf() const { //*
-    if (left == nullptr && right == nullptr){
-        return true;
-    }
-    return false;
-}
-
-
-int BST::size() const { //*
-    return size(root);
-}
-
-// recursive helper!
-int BST::size(BST::Node *me) { //*
-    if (me == nullptr)
-        return 0;
-    return 1 + size(me->right) + size(me->left);
-}
-
-
-int BST::getLeafCount() const { //*
-    return getLeafCount(root);
-}
-
-// recursive helper!
-int BST::getLeafCount(BST::Node *me) { //*
-    if (me == nullptr)
-        return 0;
-    if (me->isLeaf())
-        return 1;
-    return getLeafCount(me->left) + getLeafCount(me->right);
-}
-
-
-bool BST::has(int key) const { //*
-    return has(root, key);
-}
-
-bool BST::has(BST::Node *me, int key) { //*
-    if (me == nullptr)
-        return false;
-    if (key < me->key)
-        return has(me->left, key);
-    if (key > me->key)
-        return has(me->right, key);
-    // key == me->key
-    return true;
-}
-
-void BST::add(int newKey) { //*
-    root = add(root, newKey);
-}
-
-// recursive helper
-BST::Node *BST::add(BST::Node *me, int newKey) { //*
-    if (me == nullptr)
-        // this is where I go!!
-        me = new Node(newKey, nullptr, nullptr);
-    else if (newKey < me->key)
-        me->left = add(me->left, newKey);
-    else if (newKey > me->key)
-        me->right = add(me->right, newKey);
-    // else equal (key already in set) - do nothing
-    return me;
-}
-
-
-void BST::remove(int key) { //*
-    root = remove(root, key);
-}
-
-
-BST::Node *BST::remove(BST::Node *me, int key) { //*
-    if (me == nullptr)
-        return nullptr; // nothing to remove, key not found
-    if (key < me->key) {
-        me->left = remove(me->left, key);
-        return me;
-    } else if (key > me->key) {
-        me->right = remove(me->right, key);
-        return me;
-    } else {
-        // FOUND IT!
-        if (me->left == nullptr) {
-            Node *myReplacement = me->right;
-            delete me;
-            return myReplacement;
-        } else if (me->right == nullptr) {
-            Node *myReplacement = me->left;
-            delete me;
-            return myReplacement;
-        } else {
-            // replace me with max element in my left subtree
-            me->key = me->left->findMax();
-            me->left = remove(me->left, me->key);
-        }
-    }
-
-}
-
-
-int BST::Node::findMax() const { // method of BST::Node //*
-    if (right == nullptr)
-        return key;
-    else
-        return right->findMax();
-}
-
-
-void BST::clear(BST::Node *me) { //*
-    if (me != nullptr) {
-        clear(me->left);
-        clear(me->right);
-        delete me;
-    }
-    // base case is nothing! The implied else - if the next is a nullptr then
-    // we do nothing bc there is nothing to clear!
-}
-
-
-BST::Node *BST::copy(BST::Node *me) { //*
-    if (me == nullptr) {
-        return nullptr;
-    }
-    new Node(me->key, copy(me->left), copy(me->right));
-}
-
-std::string BST::getInOrderTraversal() const { //*
-    return getInOrderTraversal(root);
-}
-
-std::string BST::getInOrderTraversal(BST::Node *me) { //*
-    if (me == nullptr) {
-        return "";
-    }
-    return getInOrderTraversal(me->left) + std::to_string(me->key)
-    + " " + getInOrderTraversal(me->right);
-}
-
-std::string BST::getPreOrderTraversal() const { //*
-    return getPreOrderTraversal(root);
-}
-
-std::string BST::getPreOrderTraversal(BST::Node *me) { //*
-    if (me == nullptr) {
-        return "";
-    }
-    return std::to_string(me->key) + " " + getPreOrderTraversal(me->left) +
-    getPreOrderTraversal(me->right);
-}
-
-std::string BST::getPostOrderTraversal() const { //*
-    return getPostOrderTraversal(root);
-}
-
-std::string BST::getPostOrderTraversal(BST::Node *me) { //*
-    if (me == nullptr) {
-        return "";
-    }
-    return getPostOrderTraversal(me->left) +
-    getPostOrderTraversal(me->right) + std::to_string(me->key) + " ";
-}
 
 
 #endif //P3_BST_BST_H
